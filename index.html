@@ -129,8 +129,8 @@
         </div>
     </div>
 
-    <img id="logoImg" src="logo.jpg" style="display:none;" crossorigin="anonymous">
-    <img id="grainImg" src="gradient.jpg" style="display:none;" crossorigin="anonymous">
+    <img id="logoImg" src="logo.jpeg" style="display:none;" crossorigin="anonymous">
+    <img id="grainImg" src="gradient.png" style="display:none;" crossorigin="anonymous">
 
     <script>
         const canvas = document.getElementById('previewCanvas');
@@ -151,48 +151,6 @@
         let isImageLoaded = false;
 
         // Inicializace - čekáme na načtení assetů
-        window.onload = function() {
-            // Zkusíme vykreslit hned (pokud jsou v cache) nebo nastavíme onload
-            if(logoImg.complete && grainImg.complete) {
-                draw();
-            } else {
-                logoImg.onload = draw;
-                grainImg.onload = draw;
-            }
-            
-            // Placeholder text pokud není fotka
-            if(!isImageLoaded) {
-                ctx.fillStyle = '#222';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#666';
-                ctx.font = '50px Inter';
-                ctx.textAlign = 'center';
-                ctx.fillText("Připraveno. Nahraj fotku.", canvas.width/2, canvas.height/2);
-            }
-        };
-
-        // 1. Nahrání uživatelské fotky
-        imageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    uploadedImage.src = event.target.result;
-                    uploadedImage.onload = function() {
-                        isImageLoaded = true;
-                        draw();
-                    }
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Event listenery pro změny v reálném čase
-        textInput.addEventListener('input', draw);
-        posSlider.addEventListener('input', draw);
-        sizeSlider.addEventListener('input', draw);
-
-        // --- HLAVNÍ FUNKCE KRESLENÍ ---
         function draw() {
             // Vyčistit plátno
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -218,6 +176,61 @@
             // D. Text
             drawText();
         }
+        
+        window.onload = function() {
+            let assetsLoaded = 0;
+            const assetCount = 2;
+
+            const checkAssets = () => {
+                assetsLoaded++;
+                if (assetsLoaded === assetCount && !isImageLoaded) {
+                     ctx.fillStyle = '#222';
+                     ctx.fillRect(0, 0, canvas.width, canvas.height);
+                     ctx.fillStyle = '#666';
+                     ctx.font = '50px Inter';
+                     ctx.textAlign = 'center';
+                     ctx.fillText("Připraveno. Nahraj fotku.", canvas.width/2, canvas.height/2);
+                }
+            };
+            
+            logoImg.onload = draw;
+            grainImg.onload = draw;
+            
+            // Pojistka pro případ, že jsou v cache
+            if(logoImg.complete) checkAssets();
+            if(grainImg.complete) checkAssets();
+            
+            // Pokud se hned nenačetly, spustíme initial draw s placeholderem
+            if (assetsLoaded < assetCount) {
+                ctx.fillStyle = '#222';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#666';
+                ctx.font = '50px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText("Načítám assety...", canvas.width/2, canvas.height/2);
+            }
+        };
+
+        // 1. Nahrání uživatelské fotky
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    uploadedImage.src = event.target.result;
+                    uploadedImage.onload = function() {
+                        isImageLoaded = true;
+                        draw();
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Event listenery pro změny v reálném čase
+        textInput.addEventListener('input', draw);
+        posSlider.addEventListener('input', draw);
+        sizeSlider.addEventListener('input', draw);
 
         // Pomocná funkce: Object-fit cover
         function drawImageProp(ctx, img, x, y, w, h) {
