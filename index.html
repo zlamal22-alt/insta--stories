@@ -129,7 +129,7 @@
         </div>
     </div>
 
-    <img id="logoImg" src="logo.jpeg" style="display:none;" crossorigin="anonymous">
+    <img id="logoImg" src="logo.png" style="display:none;" crossorigin="anonymous">
     <img id="grainImg" src="gradient.png" style="display:none;" crossorigin="anonymous">
 
     <script>
@@ -249,14 +249,14 @@
             ctx.drawImage(img, cx, cy, sx, sy, x, y, w, h);
         }
 
-        // Funkce: Grainy Gradient s maskou (Změna na 35%)
+        // Funkce: Grainy Gradient s maskou (35%)
         function drawGrainyGradient() {
             const gCanvas = document.createElement('canvas');
             gCanvas.width = canvas.width;
             gCanvas.height = canvas.height;
             const gCtx = gCanvas.getContext('2d');
 
-            // *** ZMĚNA: Pouze 35% výšky odspodu ***
+            // *** Pouze 35% výšky odspodu ***
             const textureHeight = canvas.height * 0.35; 
             const yPos = canvas.height - textureHeight;
             
@@ -266,8 +266,8 @@
             // 2. Maska průhlednosti
             gCtx.globalCompositeOperation = 'destination-in';
             const gradient = gCtx.createLinearGradient(0, yPos, 0, canvas.height);
-            gradient.addColorStop(0, 'rgba(0,0,0,0)'); // Průhledné nahoře (začátek 35% zóny)
-            gradient.addColorStop(0.3, 'rgba(0,0,0,1)'); // Neprůhledné 30% dolů z 35% zóny
+            gradient.addColorStop(0, 'rgba(0,0,0,0)');
+            gradient.addColorStop(0.3, 'rgba(0,0,0,1)');
             
             gCtx.fillStyle = gradient;
             gCtx.fillRect(0, yPos, canvas.width, textureHeight);
