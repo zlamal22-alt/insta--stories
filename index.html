@@ -113,7 +113,7 @@
         </div>
 
         <div class="input-group">
-            <label>Text (použij *hvězdičky* pro stříbrné zvýraznění)</label>
+            <label>Text (použij *hvězdičky* pro světle šedé zvýraznění)</label>
             <textarea id="textInput" rows="4" placeholder="NAPIŠ TEXT SEM..."></textarea>
             <div class="note">Např: Nová *KOLEKCE* je tady</div>
         </div>
@@ -289,7 +289,7 @@
             ctx.restore();
         }
 
-        // Funkce: Text
+        // Funkce: Text - UPRAVENO ZDE
         function drawText() {
             const text = textInput.value.toUpperCase();
             if (!text) return;
@@ -343,24 +343,31 @@
                     const wordWidth = ctx.measureText(cleanWord).width;
                     const spaceWidth = ctx.measureText(' ').width;
 
-                    if (isHighlighted) {
-                        // Stříbrné pozadí
-                        ctx.fillStyle = '#C0C0C0';
-                        const bgPadding = 10;
-                        ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                        ctx.shadowBlur = 10;
-                        ctx.fillRect(currentX - bgPadding, y - fontSize/2 - bgPadding + (fontSize*0.1), wordWidth + (bgPadding*2), fontSize + (bgPadding/2));
-                        ctx.shadowBlur = 0;
+                    // --- ZMĚNA LOGIKY ZDE ---
+                    // 1. Nastavíme barvu
+                    ctx.fillStyle = isHighlighted ? '#E0E0E0' : 'white';
+                    
+                    // 2. Vypneme podbarvení/shadow pro highlight, pokud by náhodou existovalo
+                    if (!isHighlighted) {
+                        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                        ctx.shadowBlur = 7;
+                        ctx.shadowOffsetX = 0;
+                        ctx.shadowOffsetY = 2;
+                    } else {
+                         // Necháme stín pro zvýrazněný text, ale ne podbarvení
+                         ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                         ctx.shadowBlur = 7;
+                         ctx.shadowOffsetX = 0;
+                         ctx.shadowOffsetY = 2;
                     }
 
-                    // Text
-                    ctx.fillStyle = 'white';
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 7;
-                    ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 2;
                     ctx.textAlign = 'left'; 
                     ctx.fillText(cleanWord, currentX, y);
+                    
+                    // Po každém slově smažeme stín pro další výpočet šířky (není kritické, ale pro pořádek)
+                    ctx.shadowBlur = 0; 
+                    ctx.shadowColor = 'transparent';
+
 
                     currentX += wordWidth + spaceWidth;
                 });
