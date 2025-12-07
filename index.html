@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Insta Post Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { font-size: 1.2rem; margin-bottom: 20px; text-align: center; }
+
+        .controls {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #aaa; }
+        
+        textarea {
+            width: 100%;
+            background: #333;
+            border: 1px solid #444;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        input[type="range"] { width: 100%; accent-color: #00d2ff; }
+        
+        /* Tlačítko pro nahrání fotky */
+        .file-upload {
+            display: block;
+            background: #00d2ff;
+            color: #000;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            transition: background 0.2s;
+        }
+        .file-upload:hover { background: #00b8e6; }
+
+        input[type="file"] { display: none; }
+
+        /* Canvas Preview */
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            margin-bottom: 20px;
+        }
+
+        .download-btn {
+            background: linear-gradient(45deg, #ff0055, #ffcc00);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            max-width: 400px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+        }
+
+        .note { font-size: 0.8rem; color: #888; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>IG Post Creator (3:4)</h1>
+
+    <canvas id="previewCanvas" width="1080" height="1440"></canvas>
+    
+    <button onclick="downloadImage()" class="download-btn">Stáhnout fotku</button>
+
+    <div class="controls">
+        <div class="input-group">
+            <label class="file-upload">
+                + Nahrát hlavní fotku
+                <input type="file" id="imageInput" accept="image/*">
+            </label>
+        </div>
+
+        <div class="input-group">
+            <label>Text (použij *hvězdičky* pro stříbrné zvýraznění)</label>
+            <textarea id="textInput" rows="4" placeholder="NAPIŠ TEXT SEM..."></textarea>
+            <div class="note">Např: Nová *KOLEKCE* je tady</div>
+        </div>
+
+        <div class="input-group">
+            <label>Pozice textu (Vertikálně)</label>
+            <input type="range" id="posSlider" min="0" max="100" value="80">
+        </div>
+
+        <div class="input-group">
+            <label>Velikost textu</label>
+            <input type="range" id="sizeSlider" min="30" max="150" value="65">
+        </div>
+    </div>
+
+    <img id="logoImg" src="logo.jpg" style="display:none;" crossorigin="anonymous">
+    <img id="grainImg" src="gradient.jpg" style="display:none;" crossorigin="anonymous">
+
+    <script>
+        const canvas = document.getElementById('previewCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Elementy
+        const imageInput = document.getElementById('imageInput');
+        const textInput = document.getElementById('textInput');
+        const posSlider = document.getElementById('posSlider');
+        const sizeSlider = document.getElementById('sizeSlider');
+        
+        // Assets
+        const logoImg = document.getElementById('logoImg');
+        const grainImg = document.getElementById('grainImg');
+        
+        // Stav
+        let uploadedImage = new Image();
+        let isImageLoaded = false;
+
+        // Inicializace - čekáme na načtení assetů
+        window.onload = function() {
+            // Zkusíme vykreslit hned (pokud jsou v cache) nebo nastavíme onload
+            if(logoImg.complete && grainImg.complete) {
+                draw();
+            } else {
+                logoImg.onload = draw;
+                grainImg.onload = draw;
+            }
+            
+            // Placeholder text pokud není fotka
+            if(!isImageLoaded) {
+                ctx.fillStyle = '#222';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#666';
+                ctx.font = '50px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText("Připraveno. Nahraj fotku.", canvas.width/2, canvas.height/2);
+            }
+        };
+
+        // 1. Nahrání uživatelské fotky
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    uploadedImage.src = event.target.result;
+                    uploadedImage.onload = function() {
+                        isImageLoaded = true;
+                        draw();
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Event listenery pro změny v reálném čase
+        textInput.addEventListener('input', draw);
+        posSlider.addEventListener('input', draw);
+        sizeSlider.addEventListener('input', draw);
+
+        // --- HLAVNÍ FUNKCE KRESLENÍ ---
+        function draw() {
+            // Vyčistit plátno
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // A. Vykreslení hlavní fotky
+            if (isImageLoaded) {
+                drawImageProp(ctx, uploadedImage, 0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = '#222';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // B. Grainy Gradient (pokud je načtený)
+            if (grainImg.complete && grainImg.naturalWidth > 0) {
+                drawGrainyGradient();
+            }
+
+            // C. Logo (pokud je načtené)
+            if (logoImg.complete && logoImg.naturalWidth > 0) {
+                drawLogo();
+            }
+
+            // D. Text
+            drawText();
+        }
+
+        // Pomocná funkce: Object-fit cover
+        function drawImageProp(ctx, img, x, y, w, h) {
+            let offsetX, offsetY, cx, cy, sx, sy;
+            if (img.naturalWidth / img.naturalHeight > w / h) {
+                 sx = img.naturalHeight * (w / h);
+                 sy = img.naturalHeight;
+                 cx = (img.naturalWidth - sx) / 2;
+                 cy = 0;
+            } else {
+                 sx = img.naturalWidth;
+                 sy = img.naturalWidth * (h / w);
+                 cx = 0;
+                 cy = (img.naturalHeight - sy) / 2;
+            }
+            ctx.drawImage(img, cx, cy, sx, sy, x, y, w, h);
+        }
+
+        // Funkce: Grainy Gradient s maskou
+        function drawGrainyGradient() {
+            const gCanvas = document.createElement('canvas');
+            gCanvas.width = canvas.width;
+            gCanvas.height = canvas.height;
+            const gCtx = gCanvas.getContext('2d');
+
+            const textureHeight = canvas.height * 0.65;
+            const yPos = canvas.height - textureHeight;
+            
+            // 1. Textura
+            drawImageProp(gCtx, grainImg, 0, yPos, canvas.width, textureHeight);
+
+            // 2. Maska průhlednosti
+            gCtx.globalCompositeOperation = 'destination-in';
+            const gradient = gCtx.createLinearGradient(0, yPos, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(0,0,0,0)');
+            gradient.addColorStop(0.3, 'rgba(0,0,0,1)');
+            
+            gCtx.fillStyle = gradient;
+            gCtx.fillRect(0, yPos, canvas.width, textureHeight);
+
+            ctx.drawImage(gCanvas, 0, 0);
+        }
+
+        // Funkce: Logo s kruhovým ořezem
+        function drawLogo() {
+            const size = 180; 
+            const padding = 40;
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(padding + size/2, padding + size/2, size/2, 0, Math.PI * 2, true);
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(logoImg, padding, padding, size, size);
+            ctx.restore();
+        }
+
+        // Funkce: Text
+        function drawText() {
+            const text = textInput.value.toUpperCase();
+            if (!text) return;
+
+            const fontSize = parseInt(sizeSlider.value);
+            const lineHeight = fontSize * 1.2;
+            const maxLines = 5;
+            const maxWidth = canvas.width * 0.9;
+            const x = canvas.width / 2;
+            
+            ctx.font = `800 ${fontSize}px 'Inter'`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Rozdělení na slova a řádky
+            const words = text.split(' ');
+            let lines = [];
+            let currentLine = [];
+
+            for (let i = 0; i < words.length; i++) {
+                const cleanWord = words[i].replace(/\*/g, '');
+                const cleanLine = currentLine.map(w => w.replace(/\*/g, '')).join(' ') + (currentLine.length ? ' ' : '') + cleanWord;
+                const width = ctx.measureText(cleanLine).width;
+
+                if (width < maxWidth) {
+                    currentLine.push(words[i]);
+                } else {
+                    lines.push(currentLine);
+                    currentLine = [words[i]];
+                }
+            }
+            lines.push(currentLine);
+            if (lines.length > maxLines) lines = lines.slice(0, maxLines);
+
+            // Výpočet pozice Y
+            const sliderYPercent = parseInt(posSlider.value) / 100;
+            const startY = (canvas.height * sliderYPercent) - ((lines.length - 1) * lineHeight);
+
+            // Vykreslení řádků
+            lines.forEach((lineWords, lineIndex) => {
+                const y = startY + (lineIndex * lineHeight);
+                
+                // Spočítat šířku celého řádku pro vycentrování
+                const cleanLineStr = lineWords.map(w => w.replace(/\*/g, '')).join(' ');
+                const totalLineWidth = ctx.measureText(cleanLineStr).width;
+                let currentX = x - (totalLineWidth / 2);
+
+                lineWords.forEach((word) => {
+                    const isHighlighted = word.startsWith('*') && word.endsWith('*');
+                    const cleanWord = word.replace(/\*/g, '');
+                    const wordWidth = ctx.measureText(cleanWord).width;
+                    const spaceWidth = ctx.measureText(' ').width;
+
+                    if (isHighlighted) {
+                        // Stříbrné pozadí
+                        ctx.fillStyle = '#C0C0C0';
+                        const bgPadding = 10;
+                        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                        ctx.shadowBlur = 10;
+                        ctx.fillRect(currentX - bgPadding, y - fontSize/2 - bgPadding + (fontSize*0.1), wordWidth + (bgPadding*2), fontSize + (bgPadding/2));
+                        ctx.shadowBlur = 0;
+                    }
+
+                    // Text
+                    ctx.fillStyle = 'white';
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 7;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 2;
+                    ctx.textAlign = 'left'; 
+                    ctx.fillText(cleanWord, currentX, y);
+
+                    currentX += wordWidth + spaceWidth;
+                });
+            });
+        }
+
+        function downloadImage() {
+            if(!isImageLoaded) {
+                alert("Nejdřív nahraj fotku!");
+                return;
+            }
+            const link = document.createElement('a');
+            link.download = 'insta-post.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        }
+    </script>
+</body>
+</html>
