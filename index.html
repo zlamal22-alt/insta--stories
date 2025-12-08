@@ -46,7 +46,6 @@
             font-weight: 800;
             resize: none;
             box-sizing: border-box;
-            white-space: pre-wrap; /* Důležité pro zachování Enterů v inputu */
         }
 
         input[type="range"] { width: 100%; accent-color: #00d2ff; }
@@ -114,9 +113,9 @@
         </div>
 
         <div class="input-group">
-            <label>Text (použij *hvězdičky* pro stříbrnou)</label>
-            <textarea id="textInput" rows="5" placeholder="NAPIŠ TEXT SEM...&#10;ENTER FUNGUJE JAKO NOVÝ ŘÁDEK"></textarea>
-            <div class="note">Např: Nová *KOLEKCE* je tady</div>
+            <label>Text (*stříbrná* | Enter = nový řádek)</label>
+            <textarea id="textInput" rows="5" placeholder="NAPIŠ TEXT SEM..."></textarea>
+            <div class="note">Např: Nová *KOLEKCE*<br>je tady</div>
         </div>
 
         <div class="input-group">
@@ -149,4 +148,251 @@
         
         // Stav
         let uploadedImage = new Image();
-        let isImageLoaded =
+        let isImageLoaded = false;
+
+        // Inicializace - čekáme na načtení assetů
+        function draw() {
+            // Vyčistit plátno
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // A. Vykreslení hlavní fotky
+            if (isImageLoaded) {
+                drawImageProp(ctx, uploadedImage, 0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = '#222';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // B. Grainy Gradient (pokud je načtený)
+            if (grainImg.complete && grainImg.naturalWidth > 0) {
+                drawGrainyGradient();
+            }
+
+            // C. Logo (pokud je načtené)
+            if (logoImg.complete && logoImg.naturalWidth > 0) {
+                drawLogo();
+            }
+
+            // D. Text
+            drawText();
+        }
+        
+        window.onload = function() {
+            let assetsLoaded = 0;
+            const assetCount = 2;
+
+            const checkAssets = () => {
+                assetsLoaded++;
+                if (assetsLoaded === assetCount && !isImageLoaded) {
+                     ctx.fillStyle = '#222';
+                     ctx.fillRect(0, 0, canvas.width, canvas.height);
+                     ctx.fillStyle = '#666';
+                     ctx.font = '50px Inter';
+                     ctx.textAlign = 'center';
+                     ctx.fillText("Připraveno. Nahraj fotku.", canvas.width/2, canvas.height/2);
+                }
+            };
+            
+            logoImg.onload = draw;
+            grainImg.onload = draw;
+            
+            // Pojistka pro případ, že jsou v cache
+            if(logoImg.complete) checkAssets();
+            if(grainImg.complete) checkAssets();
+            
+            if (assetsLoaded < assetCount) {
+                ctx.fillStyle = '#222';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#666';
+                ctx.font = '50px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText("Načítám assety...", canvas.width/2, canvas.height/2);
+            }
+        };
+
+        // 1. Nahrání uživatelské fotky
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    uploadedImage.src = event.target.result;
+                    uploadedImage.onload = function() {
+                        isImageLoaded = true;
+                        draw();
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Event listenery
+        textInput.addEventListener('input', draw);
+        posSlider.addEventListener('input', draw);
+        sizeSlider.addEventListener('input', draw);
+
+        // Pomocná funkce: Object-fit cover
+        function drawImageProp(ctx, img, x, y, w, h) {
+            let offsetX, offsetY, cx, cy, sx, sy;
+            if (img.naturalWidth / img.naturalHeight > w / h) {
+                 sx = img.naturalHeight * (w / h);
+                 sy = img.naturalHeight;
+                 cx = (img.naturalWidth - sx) / 2;
+                 cy = 0;
+            } else {
+                 sx = img.naturalWidth;
+                 sy = img.naturalWidth * (h / w);
+                 cx = 0;
+                 cy = (img.naturalHeight - sy) / 2;
+            }
+            ctx.drawImage(img, cx, cy, sx, sy, x, y, w, h);
+        }
+
+        // Funkce: Grainy Gradient s maskou (40%)
+        function drawGrainyGradient() {
+            const gCanvas = document.createElement('canvas');
+            gCanvas.width = canvas.width;
+            gCanvas.height = canvas.height;
+            const gCtx = gCanvas.getContext('2d');
+
+            // *** ZMĚNA: 40% výšky odspodu ***
+            const textureHeight = canvas.height * 0.40; 
+            const yPos = canvas.height - textureHeight;
+            
+            // 1. Textura
+            drawImageProp(gCtx, grainImg, 0, yPos, canvas.width, textureHeight);
+
+            // 2. Maska průhlednosti
+            gCtx.globalCompositeOperation = 'destination-in';
+            const gradient = gCtx.createLinearGradient(0, yPos, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(0,0,0,0)');
+            gradient.addColorStop(0.3, 'rgba(0,0,0,1)');
+            
+            gCtx.fillStyle = gradient;
+            gCtx.fillRect(0, yPos, canvas.width, textureHeight);
+
+            ctx.drawImage(gCanvas, 0, 0);
+        }
+
+        // Funkce: Logo s kruhovým ořezem
+        function drawLogo() {
+            const size = 180; 
+            const padding = 40;
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(padding + size/2, padding + size/2, size/2, 0, Math.PI * 2, true);
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(logoImg, padding, padding, size, size);
+            ctx.restore();
+        }
+
+        // Funkce: Text (Nová logika s ENTEREM)
+        function drawText() {
+            // Zachováme strukturu řádků (Enter) z inputu
+            const rawText = textInput.value; 
+            const text = rawText.toUpperCase();
+            if (!text) return;
+
+            const fontSize = parseInt(sizeSlider.value);
+            const lineHeight = fontSize * 1.2;
+            const maxLines = 5;
+            const maxWidth = canvas.width * 0.9;
+            const x = canvas.width / 2;
+            
+            ctx.font = `800 ${fontSize}px 'Inter'`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // 1. Rozdělení podle odstavců (Enter)
+            const paragraphs = text.split('\n');
+            let lines = [];
+
+            // 2. Zpracování každého odstavce zvlášť
+            paragraphs.forEach(paragraph => {
+                const words = paragraph.split(' ');
+                let currentLine = [];
+
+                // Pokud je odstavec prázdný (dvakrát Enter), vložíme prázdný řádek
+                if (paragraph.trim() === '') {
+                    lines.push([]); 
+                    return; 
+                }
+
+                for (let i = 0; i < words.length; i++) {
+                    const cleanWord = words[i].replace(/\*/g, '');
+                    const cleanLine = currentLine.map(w => w.replace(/\*/g, '')).join(' ') + (currentLine.length ? ' ' : '') + cleanWord;
+                    const width = ctx.measureText(cleanLine).width;
+
+                    if (width < maxWidth) {
+                        currentLine.push(words[i]);
+                    } else {
+                        lines.push(currentLine);
+                        currentLine = [words[i]];
+                    }
+                }
+                if (currentLine.length > 0) {
+                    lines.push(currentLine);
+                }
+            });
+
+            // Ořez na max řádků (pokud je potřeba)
+            if (lines.length > maxLines) lines = lines.slice(0, maxLines);
+
+            // Výpočet pozice Y
+            const sliderYPercent = parseInt(posSlider.value) / 100;
+            const startY = (canvas.height * sliderYPercent) - ((lines.length - 1) * lineHeight);
+
+            // Vykreslení
+            lines.forEach((lineWords, lineIndex) => {
+                // Pokud je řádek prázdný (prázdný Enter), přeskočíme vykreslování, ale Y se posune
+                if (lineWords.length === 0) return;
+
+                const y = startY + (lineIndex * lineHeight);
+                
+                const cleanLineStr = lineWords.map(w => w.replace(/\*/g, '')).join(' ');
+                const totalLineWidth = ctx.measureText(cleanLineStr).width;
+                let currentX = x - (totalLineWidth / 2);
+
+                lineWords.forEach((word) => {
+                    const isHighlighted = word.startsWith('*') && word.endsWith('*');
+                    const cleanWord = word.replace(/\*/g, '');
+                    const wordWidth = ctx.measureText(cleanWord).width;
+                    const spaceWidth = ctx.measureText(' ').width;
+
+                    // --- BARVY A STÍNY ---
+                    // Barva: Stříbrná (#C0C0C0) pro hvězdičky, jinak Bílá
+                    ctx.fillStyle = isHighlighted ? '#C0C0C0' : 'white';
+                    
+                    // Stín: Vždy stejný pro oba
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 9; // Zvýšeno o 2px (bylo 7)
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 2;
+
+                    ctx.textAlign = 'left'; 
+                    ctx.fillText(cleanWord, currentX, y);
+                    
+                    // Reset stínu pro přesný výpočet pozice
+                    ctx.shadowBlur = 0; 
+                    ctx.shadowColor = 'transparent';
+
+                    currentX += wordWidth + spaceWidth;
+                });
+            });
+        }
+
+        function downloadImage() {
+            if(!isImageLoaded) {
+                alert("Nejdřív nahraj fotku!");
+                return;
+            }
+            const link = document.createElement('a');
+            link.download = 'insta-post.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        }
+    </script>
+</body>
+</html>
