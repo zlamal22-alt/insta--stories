@@ -76,6 +76,8 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             border: 1px solid #333;
             margin-bottom: 20px;
+            /* Změna kurzoru naznačuje interaktivitu */
+            cursor: pointer; 
         }
 
         .download-btn {
@@ -113,9 +115,9 @@
         </div>
 
         <div class="input-group">
-            <label>Text (*stříbrná* | Enter = nový řádek)</label>
+            <label>Text (KLIKNI na slovo v náhledu pro zvýraznění)</label>
             <textarea id="textInput" rows="5" placeholder="NAPIŠ TEXT SEM..."></textarea>
-            <div class="note">Např: Nová *KOLEKCE*<br>je tady</div>
+            <div class="note">Enter = nový řádek.</div>
         </div>
 
         <div class="input-group">
@@ -149,11 +151,16 @@
         // Stav
         let uploadedImage = new Image();
         let isImageLoaded = false;
+        
+        // *** NOVÝ STAV: Ukládá zvýrazněná slova ***
+        // Formát: [{ text: "SLOVO", x: 100, y: 500, width: 80, height: 40 }]
+        let wordBoundingBoxes = [];
+        let highlightedWords = []; 
 
-        // Inicializace - čekáme na načtení assetů
         function draw() {
             // Vyčistit plátno
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            wordBoundingBoxes = []; // Resetovat detekci pro nové překreslení
             
             // A. Vykreslení hlavní fotky
             if (isImageLoaded) {
@@ -163,12 +170,12 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
-            // B. Grainy Gradient (pokud je načtený)
+            // B. Grainy Gradient (40%)
             if (grainImg.complete && grainImg.naturalWidth > 0) {
                 drawGrainyGradient();
             }
 
-            // C. Logo (pokud je načtené)
+            // C. Logo
             if (logoImg.complete && logoImg.naturalWidth > 0) {
                 drawLogo();
             }
@@ -196,7 +203,6 @@
             logoImg.onload = draw;
             grainImg.onload = draw;
             
-            // Pojistka pro případ, že jsou v cache
             if(logoImg.complete) checkAssets();
             if(grainImg.complete) checkAssets();
             
@@ -231,6 +237,43 @@
         posSlider.addEventListener('input', draw);
         sizeSlider.addEventListener('input', draw);
 
+        // *** NOVÁ FUNKCE: Kliknutí na slovo ***
+        canvas.addEventListener('click', function(e) {
+            const rect = canvas.getBoundingClientRect();
+            // Přepočet souřadnic kliknutí na souřadnice canvasu (1080x1440)
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mouseX = (e.clientX - rect.left) * scaleX;
+            const mouseY = (e.clientY - rect.top) * scaleY;
+
+            // Najít slovo, na které bylo kliknuto
+            for (let i = 0; i < wordBoundingBoxes.length; i++) {
+                const box = wordBoundingBoxes[i];
+                if (
+                    mouseX >= box.x &&
+                    mouseX <= box.x + box.width &&
+                    mouseY >= box.y &&
+                    mouseY <= box.y + box.height
+                ) {
+                    // Unikátní identifikátor slova pro zvýraznění
+                    const wordId = `${box.text}_${box.x}_${box.y}`;
+                    const index = highlightedWords.indexOf(wordId);
+                    
+                    if (index > -1) {
+                        // Slovo je již zvýrazněno -> odebrat (vrátit na bílou)
+                        highlightedWords.splice(index, 1);
+                    } else {
+                        // Slovo není zvýrazněno -> přidat (stříbrná)
+                        highlightedWords.push(wordId);
+                    }
+                    
+                    draw(); // Překreslit náhled
+                    return;
+                }
+            }
+        });
+
+
         // Pomocná funkce: Object-fit cover
         function drawImageProp(ctx, img, x, y, w, h) {
             let offsetX, offsetY, cx, cy, sx, sy;
@@ -255,7 +298,6 @@
             gCanvas.height = canvas.height;
             const gCtx = gCanvas.getContext('2d');
 
-            // *** ZMĚNA: 40% výšky odspodu ***
             const textureHeight = canvas.height * 0.40; 
             const yPos = canvas.height - textureHeight;
             
@@ -288,9 +330,8 @@
             ctx.restore();
         }
 
-        // Funkce: Text (Nová logika s ENTEREM)
+        // Funkce: Text (UPRAVENO PRO KLIKÁNÍ)
         function drawText() {
-            // Zachováme strukturu řádků (Enter) z inputu
             const rawText = textInput.value; 
             const text = rawText.toUpperCase();
             if (!text) return;
@@ -309,27 +350,30 @@
             const paragraphs = text.split('\n');
             let lines = [];
 
-            // 2. Zpracování každého odstavce zvlášť
+            // 2. Zalamování a příprava slova
             paragraphs.forEach(paragraph => {
                 const words = paragraph.split(' ');
                 let currentLine = [];
 
-                // Pokud je odstavec prázdný (dvakrát Enter), vložíme prázdný řádek
                 if (paragraph.trim() === '') {
                     lines.push([]); 
                     return; 
                 }
 
                 for (let i = 0; i < words.length; i++) {
-                    const cleanWord = words[i].replace(/\*/g, '');
-                    const cleanLine = currentLine.map(w => w.replace(/\*/g, '')).join(' ') + (currentLine.length ? ' ' : '') + cleanWord;
+                    const word = words[i];
+                    if (word === '') continue; // Přeskočí dvojité mezery
+
+                    // Všechna slova se berou jako čistá, bez hvězdiček
+                    const cleanWord = word; 
+                    const cleanLine = currentLine.join(' ') + (currentLine.length ? ' ' : '') + cleanWord;
                     const width = ctx.measureText(cleanLine).width;
 
                     if (width < maxWidth) {
-                        currentLine.push(words[i]);
+                        currentLine.push(word);
                     } else {
                         lines.push(currentLine);
-                        currentLine = [words[i]];
+                        currentLine = [word];
                     }
                 }
                 if (currentLine.length > 0) {
@@ -337,42 +381,48 @@
                 }
             });
 
-            // Ořez na max řádků (pokud je potřeba)
             if (lines.length > maxLines) lines = lines.slice(0, maxLines);
 
             // Výpočet pozice Y
             const sliderYPercent = parseInt(posSlider.value) / 100;
             const startY = (canvas.height * sliderYPercent) - ((lines.length - 1) * lineHeight);
 
-            // Vykreslení
+            // 3. Vykreslení a uložení souřadnic
             lines.forEach((lineWords, lineIndex) => {
-                // Pokud je řádek prázdný (prázdný Enter), přeskočíme vykreslování, ale Y se posune
                 if (lineWords.length === 0) return;
 
                 const y = startY + (lineIndex * lineHeight);
                 
-                const cleanLineStr = lineWords.map(w => w.replace(/\*/g, '')).join(' ');
-                const totalLineWidth = ctx.measureText(cleanLineStr).width;
+                const totalLineWidth = ctx.measureText(lineWords.join(' ')).width;
                 let currentX = x - (totalLineWidth / 2);
 
                 lineWords.forEach((word) => {
-                    const isHighlighted = word.startsWith('*') && word.endsWith('*');
-                    const cleanWord = word.replace(/\*/g, '');
-                    const wordWidth = ctx.measureText(cleanWord).width;
+                    const wordWidth = ctx.measureText(word).width;
                     const spaceWidth = ctx.measureText(' ').width;
 
+                    // Unikátní ID slova pro porovnání s polem highlightedWords
+                    const wordId = `${word}_${Math.round(currentX)}_${Math.round(y)}`;
+                    const isHighlighted = highlightedWords.includes(wordId);
+
                     // --- BARVY A STÍNY ---
-                    // Barva: Stříbrná (#C0C0C0) pro hvězdičky, jinak Bílá
                     ctx.fillStyle = isHighlighted ? '#C0C0C0' : 'white';
                     
-                    // Stín: Vždy stejný pro oba
                     ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 9; // Zvýšeno o 2px (bylo 7)
+                    ctx.shadowBlur = 9; 
                     ctx.shadowOffsetX = 0;
                     ctx.shadowOffsetY = 2;
 
                     ctx.textAlign = 'left'; 
-                    ctx.fillText(cleanWord, currentX, y);
+                    ctx.fillText(word, currentX, y);
+                    
+                    // Uložení souřadnic slova pro detekci kliknutí (Box na textu, s malým paddingem)
+                    wordBoundingBoxes.push({
+                        text: word,
+                        x: currentX,
+                        y: y - (fontSize / 2),
+                        width: wordWidth,
+                        height: fontSize + 10 
+                    });
                     
                     // Reset stínu pro přesný výpočet pozice
                     ctx.shadowBlur = 0; 
