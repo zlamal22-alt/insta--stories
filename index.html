@@ -77,9 +77,15 @@
             border: 1px solid #333;
             margin-bottom: 20px;
         }
-
+        
+        /* Styly pro obě tlačítka */
+        .download-buttons-group {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+        
         .download-btn {
-            background: linear-gradient(45deg, #ff0055, #ffcc00);
             border: none;
             color: white;
             padding: 15px 30px;
@@ -88,12 +94,23 @@
             font-weight: 800;
             cursor: pointer;
             width: 100%;
-            max-width: 400px;
             text-transform: uppercase;
-            margin-bottom: 40px;
+            margin-bottom: 10px;
         }
         
-        /* --- NOVÉ CSS PRO TLAČÍTKA SLOV --- */
+        /* Barva pro tlačítko náhledu */
+        #downloadPreviewBtn {
+             background: linear-gradient(45deg, #ff0055, #ffcc00);
+        }
+        
+        /* Barva pro nové tlačítko */
+        #downloadDarkBtn {
+             background: #1e1e1e;
+             border: 2px solid #555;
+        }
+
+
+        /* --- CSS PRO TLAČÍTKA SLOV --- */
         #wordButtonsContainer {
             display: flex;
             flex-wrap: wrap;
@@ -118,7 +135,7 @@
         }
 
         .word-button.highlighted {
-            background: #C0C0C0; /* Stříbrné pozadí pro označené */
+            background: #C0C0C0; 
             color: black;
             font-weight: 800;
         }
@@ -136,7 +153,10 @@
 
     <canvas id="previewCanvas" width="1080" height="1440"></canvas>
     
-    <button onclick="downloadImage()" class="download-btn">Stáhnout fotku</button>
+    <div class="download-buttons-group">
+        <button onclick="downloadImage()" id="downloadPreviewBtn" class="download-btn">Stáhnout s efekty náhledu (Text, Logo, 40% Grain)</button>
+        <button onclick="downloadDarkGradientImage()" id="downloadDarkBtn" class="download-btn">Stáhnout pouze s 80% tmavým gradientem</button>
+    </div>
 
     <div class="controls">
         <div class="input-group">
@@ -153,7 +173,7 @@
         </div>
 
         <div id="wordButtonsContainer">
-            </div>
+        </div>
 
         <div class="input-group">
             <label>Pozice textu (Vertikálně)</label>
@@ -188,10 +208,10 @@
         let uploadedImage = new Image();
         let isImageLoaded = false;
         
-        // *** NOVÝ STAV: Ukládá zvýrazněná slova pomocí jejich indexu ***
-        // Formát: { "slovo_0": true, "slovo_1": false, ... }
+        // Sledování stavu zvýrazněných slov
         let highlightedWordsMap = {}; 
         
+        // Zde je pouze "draw", která kreslí NÁHLED
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
@@ -203,7 +223,7 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
-            // B. Grainy Gradient (40%)
+            // B. Grainy Gradient (40%) - POUZE PRO NÁHLED
             if (grainImg.complete && grainImg.naturalWidth > 0) {
                 drawGrainyGradient();
             }
@@ -267,33 +287,29 @@
 
         // Event listenery
         textInput.addEventListener('input', () => {
-            updateWordButtons(); // Aktualizuje tlačítka
-            draw(); // Překreslí plátno
+            updateWordButtons(); 
+            draw();
         });
         posSlider.addEventListener('input', draw);
         sizeSlider.addEventListener('input', draw);
         
-        // *** NOVÁ FUNKCE: Generování a interakce s tlačítky ***
         function updateWordButtons() {
             const rawText = textInput.value;
-            const words = rawText.toUpperCase().match(/[A-Z0-9ěščřžýáíéóúůĚŠČŘŽÝÁÍÉÓÚŮ]+/g) || []; // Vezme jen slova a čísla, ignoruje interpunkci a Enter
+            // Upravil jsem regex, aby lépe odděloval slova
+            const words = rawText.toUpperCase().split(/[\s\n]+/).filter(w => w.length > 0); 
             
-            // Zachováme jen ta zvýraznění, která stále existují v textu
             let newHighlightedWordsMap = {};
             
             wordButtonsContainer.innerHTML = '';
             
             let wordCount = 0;
             words.forEach((word) => {
-                // Generujeme unikátní klíč
                 const key = `${word}_${wordCount}`; 
                 
-                // Přesuneme stav, pokud slovo existovalo
                 if (highlightedWordsMap[key]) {
                     newHighlightedWordsMap[key] = true;
                 }
 
-                // Vytvoření tlačítka
                 const button = document.createElement('button');
                 button.className = 'word-button';
                 button.textContent = word;
@@ -312,7 +328,7 @@
                     } else {
                         delete newHighlightedWordsMap[currentKey];
                     }
-                    highlightedWordsMap = newHighlightedWordsMap; // Aktualizace stavu
+                    highlightedWordsMap = newHighlightedWordsMap;
                     draw();
                 });
 
@@ -320,7 +336,6 @@
                 wordCount++;
             });
             
-            // Při psaní textu se celý stav resetuje a nově se přiřadí do newHighlightedWordsMap
             highlightedWordsMap = newHighlightedWordsMap;
         }
 
@@ -342,7 +357,7 @@
             ctx.drawImage(img, cx, cy, sx, sy, x, y, w, h);
         }
 
-        // Funkce: Grainy Gradient s maskou (40%)
+        // Funkce: Grainy Gradient s maskou (40%) - POUZE PRO NÁHLED
         function drawGrainyGradient() {
             const gCanvas = document.createElement('canvas');
             gCanvas.width = canvas.width;
@@ -352,10 +367,8 @@
             const textureHeight = canvas.height * 0.40; 
             const yPos = canvas.height - textureHeight;
             
-            // 1. Textura
             drawImageProp(gCtx, grainImg, 0, yPos, canvas.width, textureHeight);
 
-            // 2. Maska průhlednosti
             gCtx.globalCompositeOperation = 'destination-in';
             const gradient = gCtx.createLinearGradient(0, yPos, 0, canvas.height);
             gradient.addColorStop(0, 'rgba(0,0,0,0)');
@@ -381,7 +394,7 @@
             ctx.restore();
         }
 
-        // Funkce: Text (UPRAVENO PRO TLAČÍTKA)
+        // Funkce: Text
         function drawText() {
             const rawText = textInput.value; 
             const text = rawText.toUpperCase();
@@ -399,9 +412,8 @@
 
             const paragraphs = text.split('\n');
             let lines = [];
-            let globalWordCount = 0; // Sledování indexu slova napříč všemi řádky
+            let globalWordCount = 0; 
 
-            // 1. Zalamování a příprava slova
             paragraphs.forEach(paragraph => {
                 const words = paragraph.split(' ');
                 let currentLine = [];
@@ -432,11 +444,9 @@
 
             if (lines.length > maxLines) lines = lines.slice(0, maxLines);
 
-            // Výpočet pozice Y
             const sliderYPercent = parseInt(posSlider.value) / 100;
             const startY = (canvas.height * sliderYPercent) - ((lines.length - 1) * lineHeight);
 
-            // 2. Vykreslení
             lines.forEach((lineWords, lineIndex) => {
                 if (lineWords.length === 0) return;
 
@@ -449,14 +459,10 @@
                     const wordWidth = ctx.measureText(word).width;
                     const spaceWidth = ctx.measureText(' ').width;
                     
-                    // Unikátní klíč pro kontrolu zvýraznění
                     const keyToCheck = `${word}_${globalWordCount}`;
-                    
-                    // Kontrola, zda je slovo zvýrazněno v mapě
                     const isHighlighted = highlightedWordsMap[keyToCheck] === true;
 
-                    // --- BARVY A STÍNY ---
-                    ctx.fillStyle = isHighlighted ? '#C0C0C0' : 'white'; // Stříbrná vs. Bílá
+                    ctx.fillStyle = isHighlighted ? '#C0C0C0' : 'white';
                     
                     ctx.shadowColor = 'rgba(0,0,0,0.8)';
                     ctx.shadowBlur = 9; 
@@ -466,7 +472,6 @@
                     ctx.textAlign = 'left'; 
                     ctx.fillText(word, currentX, y);
                     
-                    // Reset stínu
                     ctx.shadowBlur = 0; 
                     ctx.shadowColor = 'transparent';
 
@@ -476,19 +481,61 @@
             });
         }
 
+        // --- PŮVODNÍ FUNKCE KE STAŽENÍ (Náhled) ---
         function downloadImage() {
             if(!isImageLoaded) {
                 alert("Nejdřív nahraj fotku!");
                 return;
             }
             const link = document.createElement('a');
-            link.download = 'insta-post.jpg';
+            link.download = 'insta-post-preview.jpg';
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
         }
         
-        // Spustíme inicializaci tlačítek při startu
-        updateWordButtons();
+        // --- NOVÁ FUNKCE KE STAŽENÍ (Jen tmavý gradient) ---
+        function downloadDarkGradientImage() {
+            if(!isImageLoaded) {
+                alert("Nejdřív nahraj fotku!");
+                return;
+            }
+
+            // Vytvoření dočasného Canvasu
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // 1. Vykreslení hlavní fotky
+            drawImageProp(tempCtx, uploadedImage, 0, 0, tempCanvas.width, tempCanvas.height);
+
+            // 2. Vykreslení tmavého gradientu (80% odspodu)
+            const darkGradientHeight = tempCanvas.height * 0.80; // 80%
+            const startY = tempCanvas.height - darkGradientHeight;
+            
+            const gradient = tempCtx.createLinearGradient(0, startY, 0, tempCanvas.height);
+            
+            // 0% (nahoře) je plně průhledné
+            gradient.addColorStop(0, 'rgba(0, 0, 0, 0)'); 
+            
+            // 40% (začátek stmívání) je mírně průhledné
+            gradient.addColorStop(0.4, 'rgba(0, 0, 0, 0.4)'); 
+            
+            // 100% (dole) je tmavé
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0.8)');
+
+            tempCtx.fillStyle = gradient;
+            tempCtx.fillRect(0, startY, tempCanvas.width, darkGradientHeight);
+
+
+            // 3. Spuštění stahování
+            const link = document.createElement('a');
+            link.download = 'insta-post-dark-gradient.jpg';
+            link.href = tempCanvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        }
+
+        updateWordButtons(); // Spustíme inicializaci tlačítek
     </script>
 </body>
 </html>
