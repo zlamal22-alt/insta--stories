@@ -155,7 +155,7 @@
     
     <div class="download-buttons-group">
         <button onclick="downloadImage()" id="downloadPreviewBtn" class="download-btn">Stáhnout s efekty náhledu (Text, Logo, 40% Grain)</button>
-        <button onclick="downloadDarkGradientImage()" id="downloadDarkBtn" class="download-btn">Stáhnout pouze s 80% tmavým gradientem</button>
+        <button onclick="downloadDarkGradientImage()" id="downloadDarkBtn" class="download-btn">Stáhnout pouze s 80% tmavým překrytím</button>
     </div>
 
     <div class="controls">
@@ -493,7 +493,7 @@
             link.click();
         }
         
-        // --- NOVÁ FUNKCE KE STAŽENÍ (Jen tmavý gradient) ---
+        // --- NOVÁ FUNKCE KE STAŽENÍ (Celofotkové 80% překrytí) ---
         function downloadDarkGradientImage() {
             if(!isImageLoaded) {
                 alert("Nejdřív nahraj fotku!");
@@ -509,28 +509,15 @@
             // 1. Vykreslení hlavní fotky
             drawImageProp(tempCtx, uploadedImage, 0, 0, tempCanvas.width, tempCanvas.height);
 
-            // 2. Vykreslení tmavého gradientu (80% odspodu)
-            const darkGradientHeight = tempCanvas.height * 0.80; // 80%
-            const startY = tempCanvas.height - darkGradientHeight;
-            
-            const gradient = tempCtx.createLinearGradient(0, startY, 0, tempCanvas.height);
-            
-            // 0% (nahoře) je plně průhledné
-            gradient.addColorStop(0, 'rgba(0, 0, 0, 0)'); 
-            
-            // 40% (začátek stmívání) je mírně průhledné
-            gradient.addColorStop(0.4, 'rgba(0, 0, 0, 0.4)'); 
-            
-            // 100% (dole) je tmavé
-            gradient.addColorStop(1, 'rgba(0, 0, 0, 0.8)');
-
-            tempCtx.fillStyle = gradient;
-            tempCtx.fillRect(0, startY, tempCanvas.width, darkGradientHeight);
+            // 2. Vykreslení CELOFOTKOVÉHO PŘEKRYTÍ (Barva černá, Opacita 80%)
+            // RGBA: Red, Green, Blue, Alpha (průhlednost 0.8)
+            tempCtx.fillStyle = 'rgba(0, 0, 0, 0.8)'; 
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
 
             // 3. Spuštění stahování
             const link = document.createElement('a');
-            link.download = 'insta-post-dark-gradient.jpg';
+            link.download = 'insta-post-dark-overlay.jpg';
             link.href = tempCanvas.toDataURL('image/jpeg', 0.9);
             link.click();
         }
