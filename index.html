@@ -489,7 +489,8 @@
             }
             const link = document.createElement('a');
             link.download = 'insta-post-preview.jpg';
-            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            // ZMĚNA KVALITY: 1.0 (100%)
+            link.href = canvas.toDataURL('image/jpeg', 1.0); 
             link.click();
         }
         
@@ -510,7 +511,6 @@
             drawImageProp(tempCtx, uploadedImage, 0, 0, tempCanvas.width, tempCanvas.height);
 
             // 2. Vykreslení CELOFOTKOVÉHO PŘEKRYTÍ (Barva černá, Opacita 80%)
-            // RGBA: Red, Green, Blue, Alpha (průhlednost 0.8)
             tempCtx.fillStyle = 'rgba(0, 0, 0, 0.8)'; 
             tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
@@ -518,7 +518,8 @@
             // 3. Spuštění stahování
             const link = document.createElement('a');
             link.download = 'insta-post-dark-overlay.jpg';
-            link.href = tempCanvas.toDataURL('image/jpeg', 0.9);
+            // ZMĚNA KVALITY: 1.0 (100%)
+            link.href = tempCanvas.toDataURL('image/jpeg', 1.0);
             link.click();
         }
 
