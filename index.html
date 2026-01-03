@@ -9,181 +9,47 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800&display=swap" rel="stylesheet">
     
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1a1a1a;
-            color: white;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
+        body { font-family: 'Inter', sans-serif; background-color: #1a1a1a; color: white; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         h1 { font-size: 1.2rem; margin-bottom: 20px; text-align: center; }
-
-        .controls {
-            background: #2a2a2a;
-            padding: 20px;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 400px;
-            box-sizing: border-box;
-            margin-bottom: 20px;
-        }
-
+        .controls { background: #2a2a2a; padding: 20px; border-radius: 16px; width: 100%; max-width: 400px; box-sizing: border-box; margin-bottom: 20px; }
         .input-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #aaa; }
-        
-        textarea {
-            width: 100%;
-            background: #333;
-            border: 1px solid #444;
-            color: white;
-            padding: 10px;
-            border-radius: 8px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 800;
-            resize: none;
-            box-sizing: border-box;
-        }
-
+        textarea { width: 100%; background: #333; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; font-family: 'Inter', sans-serif; font-weight: 800; resize: none; box-sizing: border-box; }
         input[type="range"] { width: 100%; accent-color: #00d2ff; }
-        
-        /* Tlačítko pro nahrání fotky */
-        .file-upload {
-            display: block;
-            background: #00d2ff;
-            color: #000;
-            padding: 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1rem;
-            margin-bottom: 10px;
-            transition: background 0.2s;
-        }
-        .file-upload:hover { background: #00b8e6; }
-
+        .file-upload { display: block; background: #00d2ff; color: #000; padding: 15px; border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; font-size: 1rem; margin-bottom: 10px; }
         input[type="file"] { display: none; }
-
-        /* Canvas Preview */
-        canvas {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-            margin-bottom: 20px;
-        }
-        
-        /* Styly pro obě tlačítka */
-        .download-buttons-group {
-            width: 100%;
-            max-width: 400px;
-            margin-bottom: 20px;
-        }
-        
-        .download-btn {
-            border: none;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-weight: 800;
-            cursor: pointer;
-            width: 100%;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-        
-        /* Barva pro tlačítko náhledu */
-        #downloadPreviewBtn {
-             background: linear-gradient(45deg, #ff0055, #ffcc00);
-        }
-        
-        /* Barva pro nové tlačítko */
-        #downloadDarkBtn {
-             background: #1e1e1e;
-             border: 2px solid #555;
-        }
-
-
-        /* --- CSS PRO TLAČÍTKA SLOV --- */
-        #wordButtonsContainer {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 15px;
-            padding: 10px 0;
-            max-height: 150px;
-            overflow-y: auto;
-            border-top: 1px solid #333;
-            border-bottom: 1px solid #333;
-        }
-
-        .word-button {
-            background: #444;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .word-button.highlighted {
-            background: #C0C0C0; 
-            color: black;
-            font-weight: 800;
-        }
-
-        .word-button:hover {
-            background: #555;
-        }
-
-        .note { font-size: 0.8rem; color: #888; margin-top: 5px; }
+        canvas { max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; margin-bottom: 20px; }
+        .download-buttons-group { width: 100%; max-width: 400px; margin-bottom: 20px; }
+        .download-btn { border: none; color: white; padding: 15px 30px; border-radius: 50px; font-size: 1rem; font-weight: 800; cursor: pointer; width: 100%; text-transform: uppercase; margin-bottom: 10px; }
+        #downloadPreviewBtn { background: linear-gradient(45deg, #ff0055, #ffcc00); }
+        #downloadDarkBtn { background: #1e1e1e; border: 2px solid #555; }
+        #wordButtonsContainer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; padding: 10px 0; max-height: 150px; overflow-y: auto; border-top: 1px solid #333; border-bottom: 1px solid #333; }
+        .word-button { background: #444; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; }
+        .word-button.highlighted { background: #C0C0C0; color: black; font-weight: 800; }
     </style>
 </head>
 <body>
 
-    <h1>IG Post Creator (3:4)</h1>
+    <h1>IG Post Creator</h1>
 
     <canvas id="previewCanvas" width="1080" height="1440"></canvas>
     
     <div class="download-buttons-group">
-        <button onclick="downloadImage()" id="downloadPreviewBtn" class="download-btn">Stáhnout s efekty náhledu (Text, Logo, 40% Grain)</button>
-        <button onclick="downloadDarkGradientImage()" id="downloadDarkBtn" class="download-btn">Stáhnout pouze s 80% tmavým překrytím</button>
+        <button onclick="downloadImage()" id="downloadPreviewBtn" class="download-btn">Stáhnout (Text + Logo)</button>
+        <button onclick="downloadDarkGradientImage()" id="downloadDarkBtn" class="download-btn">Jen 80% Dark Overlay</button>
     </div>
 
     <div class="controls">
         <div class="input-group">
-            <label class="file-upload">
-                + Nahrát hlavní fotku
-                <input type="file" id="imageInput" accept="image/*">
-            </label>
+            <label class="file-upload">+ Nahrát hlavní fotku<input type="file" id="imageInput" accept="image/*"></label>
         </div>
-
         <div class="input-group">
             <label>Text</label>
             <textarea id="textInput" rows="5" placeholder="NAPIŠ TEXT SEM..."></textarea>
-            <div class="note">Enter = nový řádek.</div>
         </div>
-
-        <div id="wordButtonsContainer">
-        </div>
-
-        <div class="input-group">
-            <label>Pozice textu (Vertikálně)</label>
-            <input type="range" id="posSlider" min="0" max="100" value="80">
-        </div>
-
-        <div class="input-group">
-            <label>Velikost textu</label>
-            <input type="range" id="sizeSlider" min="30" max="150" value="65">
-        </div>
+        <div id="wordButtonsContainer"></div>
+        <div class="input-group"><label>Pozice textu</label><input type="range" id="posSlider" min="0" max="100" value="80"></div>
+        <div class="input-group"><label>Velikost textu</label><input type="range" id="sizeSlider" min="30" max="150" value="65"></div>
     </div>
 
     <img id="logoImg" src="logo.png" style="display:none;" crossorigin="anonymous">
@@ -192,338 +58,166 @@
     <script>
         const canvas = document.getElementById('previewCanvas');
         const ctx = canvas.getContext('2d');
-        
-        // Elementy
         const imageInput = document.getElementById('imageInput');
         const textInput = document.getElementById('textInput');
         const posSlider = document.getElementById('posSlider');
         const sizeSlider = document.getElementById('sizeSlider');
         const wordButtonsContainer = document.getElementById('wordButtonsContainer');
-        
-        // Assets
         const logoImg = document.getElementById('logoImg');
         const grainImg = document.getElementById('grainImg');
         
-        // Stav
         let uploadedImage = new Image();
         let isImageLoaded = false;
-        
-        // Sledování stavu zvýrazněných slov
         let highlightedWordsMap = {}; 
-        
-        // Zde je pouze "draw", která kreslí NÁHLED
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // A. Vykreslení hlavní fotky
-            if (isImageLoaded) {
-                drawImageProp(ctx, uploadedImage, 0, 0, canvas.width, canvas.height);
-            } else {
-                ctx.fillStyle = '#222';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
+            // Základní nastavení vyhlazování pro celý canvas
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
 
-            // B. Grainy Gradient (40%) - POUZE PRO NÁHLED
-            if (grainImg.complete && grainImg.naturalWidth > 0) {
-                drawGrainyGradient();
-            }
+            if (isImageLoaded) drawImageProp(ctx, uploadedImage, 0, 0, canvas.width, canvas.height);
+            else { ctx.fillStyle = '#222'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
 
-            // C. Logo
-            if (logoImg.complete && logoImg.naturalWidth > 0) {
-                drawLogo();
-            }
-
-            // D. Text
+            if (grainImg.complete && grainImg.naturalWidth > 0) drawGrainyGradient();
+            if (logoImg.complete && logoImg.naturalWidth > 0) drawLogo();
             drawText();
         }
-        
-        window.onload = function() {
-            let assetsLoaded = 0;
-            const assetCount = 2;
 
-            const checkAssets = () => {
-                assetsLoaded++;
-                if (assetsLoaded === assetCount && !isImageLoaded) {
-                     ctx.fillStyle = '#222';
-                     ctx.fillRect(0, 0, canvas.width, canvas.height);
-                     ctx.fillStyle = '#666';
-                     ctx.font = '50px Inter';
-                     ctx.textAlign = 'center';
-                     ctx.fillText("Připraveno. Nahraj fotku.", canvas.width/2, canvas.height/2);
-                }
-            };
-            
-            logoImg.onload = draw;
-            grainImg.onload = draw;
-            
-            if(logoImg.complete) checkAssets();
-            if(grainImg.complete) checkAssets();
-            
-            if (assetsLoaded < assetCount) {
-                ctx.fillStyle = '#222';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#666';
-                ctx.font = '50px Inter';
-                ctx.textAlign = 'center';
-                ctx.fillText("Načítám assety...", canvas.width/2, canvas.height/2);
-            }
-        };
-
-        // 1. Nahrání uživatelské fotky
         imageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     uploadedImage.src = event.target.result;
-                    uploadedImage.onload = function() {
-                        isImageLoaded = true;
-                        draw();
-                    }
+                    uploadedImage.onload = function() { isImageLoaded = true; draw(); }
                 }
                 reader.readAsDataURL(file);
             }
         });
 
-        // Event listenery
-        textInput.addEventListener('input', () => {
-            updateWordButtons(); 
-            draw();
-        });
+        textInput.addEventListener('input', () => { updateWordButtons(); draw(); });
         posSlider.addEventListener('input', draw);
         sizeSlider.addEventListener('input', draw);
-        
+
         function updateWordButtons() {
-            const rawText = textInput.value;
-            // Upravil jsem regex, aby lépe odděloval slova
-            const words = rawText.toUpperCase().split(/[\s\n]+/).filter(w => w.length > 0); 
-            
+            const words = textInput.value.toUpperCase().split(/[\s\n]+/).filter(w => w.length > 0); 
             let newHighlightedWordsMap = {};
-            
             wordButtonsContainer.innerHTML = '';
-            
-            let wordCount = 0;
-            words.forEach((word) => {
-                const key = `${word}_${wordCount}`; 
-                
-                if (highlightedWordsMap[key]) {
-                    newHighlightedWordsMap[key] = true;
-                }
-
+            words.forEach((word, i) => {
+                const key = `${word}_${i}`; 
+                if (highlightedWordsMap[key]) newHighlightedWordsMap[key] = true;
                 const button = document.createElement('button');
-                button.className = 'word-button';
+                button.className = 'word-button' + (newHighlightedWordsMap[key] ? ' highlighted' : '');
                 button.textContent = word;
-                button.setAttribute('data-key', key);
-                
-                if (newHighlightedWordsMap[key]) {
-                    button.classList.add('highlighted');
-                }
-
-                button.addEventListener('click', function() {
-                    const currentKey = this.getAttribute('data-key');
-                    const isHighlighted = this.classList.toggle('highlighted');
-                    
-                    if (isHighlighted) {
-                        newHighlightedWordsMap[currentKey] = true;
-                    } else {
-                        delete newHighlightedWordsMap[currentKey];
-                    }
+                button.onclick = () => {
+                    button.classList.toggle('highlighted');
+                    if (button.classList.contains('highlighted')) newHighlightedWordsMap[key] = true;
+                    else delete newHighlightedWordsMap[key];
                     highlightedWordsMap = newHighlightedWordsMap;
                     draw();
-                });
-
+                };
                 wordButtonsContainer.appendChild(button);
-                wordCount++;
             });
-            
             highlightedWordsMap = newHighlightedWordsMap;
         }
 
-
-        // Pomocná funkce: Object-fit cover
-        function drawImageProp(ctx, img, x, y, w, h) {
-            let offsetX, offsetY, cx, cy, sx, sy;
-            if (img.naturalWidth / img.naturalHeight > w / h) {
-                 sx = img.naturalHeight * (w / h);
-                 sy = img.naturalHeight;
-                 cx = (img.naturalWidth - sx) / 2;
-                 cy = 0;
-            } else {
-                 sx = img.naturalWidth;
-                 sy = img.naturalWidth * (h / w);
-                 cx = 0;
-                 cy = (img.naturalHeight - sy) / 2;
-            }
-            ctx.drawImage(img, cx, cy, sx, sy, x, y, w, h);
+        function drawImageProp(context, img, x, y, w, h) {
+            let sx, sy, cx, cy;
+            const r = img.naturalWidth / img.naturalHeight;
+            if (r > w / h) { sy = img.naturalHeight; sx = sy * (w / h); cx = (img.naturalWidth - sx) / 2; cy = 0; }
+            else { sx = img.naturalWidth; sy = sx * (h / w); cx = 0; cy = (img.naturalHeight - sy) / 2; }
+            context.drawImage(img, cx, cy, sx, sy, x, y, w, h);
         }
 
-        // Funkce: Grainy Gradient s maskou (40%) - POUZE PRO NÁHLED
         function drawGrainyGradient() {
             const gCanvas = document.createElement('canvas');
-            gCanvas.width = canvas.width;
-            gCanvas.height = canvas.height;
+            gCanvas.width = canvas.width; gCanvas.height = canvas.height;
             const gCtx = gCanvas.getContext('2d');
-
             const textureHeight = canvas.height * 0.40; 
             const yPos = canvas.height - textureHeight;
-            
             drawImageProp(gCtx, grainImg, 0, yPos, canvas.width, textureHeight);
-
             gCtx.globalCompositeOperation = 'destination-in';
             const gradient = gCtx.createLinearGradient(0, yPos, 0, canvas.height);
             gradient.addColorStop(0, 'rgba(0,0,0,0)');
             gradient.addColorStop(0.3, 'rgba(0,0,0,1)');
-            
-            gCtx.fillStyle = gradient;
-            gCtx.fillRect(0, yPos, canvas.width, textureHeight);
-
+            gCtx.fillStyle = gradient; gCtx.fillRect(0, yPos, canvas.width, textureHeight);
             ctx.drawImage(gCanvas, 0, 0);
         }
 
-        // Funkce: Logo s kruhovým ořezem
         function drawLogo() {
             const size = 180; 
             const padding = 40;
-            
             ctx.save();
             ctx.beginPath();
-            ctx.arc(padding + size/2, padding + size/2, size/2, 0, Math.PI * 2, true);
-            ctx.closePath();
+            ctx.arc(padding + size/2, padding + size/2, size/2, 0, Math.PI * 2);
             ctx.clip();
+            
+            // VYNUCENÍ VYSOKÉ KVALITY PRO LOGO
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
             ctx.drawImage(logoImg, padding, padding, size, size);
             ctx.restore();
         }
 
-        // Funkce: Text
         function drawText() {
-            const rawText = textInput.value; 
-            const text = rawText.toUpperCase();
+            const text = textInput.value.toUpperCase();
             if (!text) return;
-
             const fontSize = parseInt(sizeSlider.value);
             const lineHeight = fontSize * 1.2;
-            const maxLines = 5;
-            const maxWidth = canvas.width * 0.9;
-            const x = canvas.width / 2;
-            
             ctx.font = `800 ${fontSize}px 'Inter'`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-
             const paragraphs = text.split('\n');
             let lines = [];
-            let globalWordCount = 0; 
-
-            paragraphs.forEach(paragraph => {
-                const words = paragraph.split(' ');
+            paragraphs.forEach(p => {
+                let words = p.split(' ');
                 let currentLine = [];
-
-                if (paragraph.trim() === '') {
-                    lines.push([]); 
-                    return; 
-                }
-
-                for (let i = 0; i < words.length; i++) {
-                    const word = words[i];
-                    if (word === '') continue;
-
-                    const cleanLine = currentLine.join(' ') + (currentLine.length ? ' ' : '') + word;
-                    const width = ctx.measureText(cleanLine).width;
-
-                    if (width < maxWidth) {
-                        currentLine.push(word);
-                    } else {
-                        lines.push(currentLine);
-                        currentLine = [word];
-                    }
-                }
-                if (currentLine.length > 0) {
-                    lines.push(currentLine);
-                }
+                words.forEach(word => {
+                    if (ctx.measureText(currentLine.join(' ') + ' ' + word).width < canvas.width * 0.9) currentLine.push(word);
+                    else { lines.push(currentLine); currentLine = [word]; }
+                });
+                lines.push(currentLine);
             });
-
-            if (lines.length > maxLines) lines = lines.slice(0, maxLines);
-
-            const sliderYPercent = parseInt(posSlider.value) / 100;
-            const startY = (canvas.height * sliderYPercent) - ((lines.length - 1) * lineHeight);
-
-            lines.forEach((lineWords, lineIndex) => {
-                if (lineWords.length === 0) return;
-
-                const y = startY + (lineIndex * lineHeight);
-                
-                const totalLineWidth = ctx.measureText(lineWords.join(' ')).width;
-                let currentX = x - (totalLineWidth / 2);
-
-                lineWords.forEach((word) => {
-                    const wordWidth = ctx.measureText(word).width;
-                    const spaceWidth = ctx.measureText(' ').width;
-                    
-                    const keyToCheck = `${word}_${globalWordCount}`;
-                    const isHighlighted = highlightedWordsMap[keyToCheck] === true;
-
-                    ctx.fillStyle = isHighlighted ? '#C0C0C0' : 'white';
-                    
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 9; 
-                    ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 2;
-
-                    ctx.textAlign = 'left'; 
-                    ctx.fillText(word, currentX, y);
-                    
-                    ctx.shadowBlur = 0; 
-                    ctx.shadowColor = 'transparent';
-
-                    currentX += wordWidth + spaceWidth;
+            const startY = (canvas.height * (posSlider.value / 100)) - ((lines.length - 1) * lineHeight / 2);
+            let globalWordCount = 0;
+            lines.forEach((line, i) => {
+                let currentX = canvas.width / 2 - ctx.measureText(line.join(' ')).width / 2;
+                line.forEach(word => {
+                    ctx.fillStyle = highlightedWordsMap[`${word}_${globalWordCount}`] ? '#C0C0C0' : 'white';
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 9;
+                    ctx.fillText(word, currentX + ctx.measureText(word).width / 2, startY + i * lineHeight);
+                    ctx.shadowBlur = 0;
+                    currentX += ctx.measureText(word).width + ctx.measureText(' ').width;
                     globalWordCount++;
                 });
             });
         }
 
-        // --- PŮVODNÍ FUNKCE KE STAŽENÍ (Náhled) ---
         function downloadImage() {
-            if(!isImageLoaded) {
-                alert("Nejdřív nahraj fotku!");
-                return;
-            }
+            if(!isImageLoaded) return;
             const link = document.createElement('a');
-            link.download = 'insta-post-preview.jpg';
-            // ZMĚNA KVALITY: 1.0 (100%)
-            link.href = canvas.toDataURL('image/jpeg', 1.0); 
+            link.download = 'insta-post.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 1.0); // Max kvalita JPEG
             link.click();
         }
         
-        // --- NOVÁ FUNKCE KE STAŽENÍ (Celofotkové 80% překrytí) ---
         function downloadDarkGradientImage() {
-            if(!isImageLoaded) {
-                alert("Nejdřív nahraj fotku!");
-                return;
-            }
-
-            // Vytvoření dočasného Canvasu
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvas.width;
-            tempCanvas.height = canvas.height;
-            const tempCtx = tempCanvas.getContext('2d');
-
-            // 1. Vykreslení hlavní fotky
-            drawImageProp(tempCtx, uploadedImage, 0, 0, tempCanvas.width, tempCanvas.height);
-
-            // 2. Vykreslení CELOFOTKOVÉHO PŘEKRYTÍ (Barva černá, Opacita 80%)
-            tempCtx.fillStyle = 'rgba(0, 0, 0, 0.8)'; 
-            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-
-
-            // 3. Spuštění stahování
+            if(!isImageLoaded) return;
+            const temp = document.createElement('canvas');
+            temp.width = canvas.width; temp.height = canvas.height;
+            const tCtx = temp.getContext('2d');
+            tCtx.imageSmoothingQuality = 'high';
+            drawImageProp(tCtx, uploadedImage, 0, 0, temp.width, temp.height);
+            tCtx.fillStyle = 'rgba(0, 0, 0, 0.8)'; 
+            tCtx.fillRect(0, 0, temp.width, temp.height);
             const link = document.createElement('a');
-            link.download = 'insta-post-dark-overlay.jpg';
-            // ZMĚNA KVALITY: 1.0 (100%)
-            link.href = tempCanvas.toDataURL('image/jpeg', 1.0);
+            link.download = 'dark-overlay.jpg';
+            link.href = temp.toDataURL('image/jpeg', 1.0);
             link.click();
         }
-
-        updateWordButtons(); // Spustíme inicializaci tlačítek
     </script>
 </body>
 </html>
