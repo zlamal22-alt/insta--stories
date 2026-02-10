@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Insta Post Generator</title>
+    <title>Insta Post & Story Generator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800&display=swap" rel="stylesheet">
@@ -11,97 +11,24 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #1a1a1a; color: white; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         h1 { font-size: 1rem; margin-bottom: 10px; text-align: center; color: #888; }
-        
-        /* Hlavní kontejner */
-        .main-wrapper {
-            width: 100%;
-            max-width: 500px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        /* Canvas Preview */
-        canvas {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-            display: block;
-        }
-
-        /* Nový panel pro posuvníky hned pod fotkou */
-        .slider-panel {
-            background: #252525;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #333;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .slider-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-        
-        .slider-row label {
-            min-width: 60px;
-            font-size: 0.8rem;
-            color: #ccc;
-            font-weight: bold;
-            margin: 0;
-        }
-
-        input[type="range"] { 
-            flex-grow: 1; 
-            accent-color: #00d2ff; 
-            height: 6px;
-            background: #444;
-            border-radius: 5px;
-            outline: none;
-        }
-
-        /* Zbytek ovládání */
-        .controls {
-            background: #222;
-            padding: 20px;
-            border-radius: 16px;
-        }
-
+        .main-wrapper { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; }
+        canvas { width: 100%; height: auto; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); border: 1px solid #333; display: block; }
+        .slider-panel { background: #252525; padding: 15px; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; gap: 15px; }
+        .slider-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .slider-row label { min-width: 60px; font-size: 0.8rem; color: #ccc; font-weight: bold; margin: 0; }
+        input[type="range"] { flex-grow: 1; accent-color: #00d2ff; height: 6px; background: #444; border-radius: 5px; outline: none; }
+        .controls { background: #222; padding: 20px; border-radius: 16px; }
         .input-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #aaa; }
         textarea { width: 100%; background: #333; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; font-family: 'Inter', sans-serif; font-weight: 800; resize: none; box-sizing: border-box; }
-        
         .file-upload { display: block; background: #00d2ff; color: #000; padding: 15px; border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; font-size: 1rem; transition: 0.2s; }
         .file-upload:hover { background: #00b8e6; }
         input[type="file"] { display: none; }
-        
-        /* Tlačítka */
-        .download-buttons-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .download-btn {
-            border: none;
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 800;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-        
+        .download-buttons-group { display: flex; flex-direction: column; gap: 10px; }
+        .download-btn { border: none; color: white; padding: 12px; border-radius: 8px; font-size: 0.9rem; font-weight: 800; cursor: pointer; text-transform: uppercase; }
         #btnPost { background: linear-gradient(90deg, #ff0055, #ffcc00); }
-        #btnStory { background: linear-gradient(90deg, #9d00ff, #00d2ff); } /* Nové tlačítko */
+        #btnStory { background: linear-gradient(90deg, #9d00ff, #00d2ff); }
         #btnDark { background: #333; border: 1px solid #555; }
-
         #wordButtonsContainer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; padding: 10px 0; border-top: 1px solid #333; }
         .word-button { background: #444; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
         .word-button.highlighted { background: #C0C0C0; color: black; font-weight: 800; }
@@ -110,7 +37,7 @@
 <body>
 
     <div class="main-wrapper">
-        <h1>IG Generator</h1>
+        <h1>IG Creator PRO 🚀</h1>
 
         <canvas id="previewCanvas" width="1080" height="1440"></canvas>
         
@@ -126,9 +53,9 @@
         </div>
 
         <div class="download-buttons-group">
-            <button onclick="downloadImage('post')" id="btnPost" class="download-btn">Stáhnout POST (4:5)</button>
-            <button onclick="downloadStoryImage()" id="btnStory" class="download-btn">Stáhnout STORY (9:16)</button>
-            <button onclick="downloadDarkGradientImage()" id="btnDark" class="download-btn">Jen fotka + Tmavý filtr</button>
+            <button onclick="downloadImage()" id="btnPost" class="download-btn">Stáhnout POST (4:5) 📸</button>
+            <button onclick="downloadStoryImage()" id="btnStory" class="download-btn">Stáhnout STORY (9:16) ✨</button>
+            <button onclick="downloadDarkGradientImage()" id="btnDark" class="download-btn">Jen fotka + 80% Dark 🌑</button>
         </div>
 
         <div class="controls">
@@ -161,37 +88,22 @@
         let isImageLoaded = false;
         let highlightedWordsMap = {}; 
 
-        // Funkce vykreslování
         function draw(targetCanvas = canvas, isStory = false) {
             const context = targetCanvas.getContext('2d');
             const w = targetCanvas.width;
             const h = targetCanvas.height;
 
-            // Vyhlazování
             context.imageSmoothingEnabled = true;
             context.imageSmoothingQuality = 'high';
-
             context.clearRect(0, 0, w, h);
 
-            // 1. Fotka
             if (isImageLoaded) drawImageProp(context, uploadedImage, 0, 0, w, h);
             else { context.fillStyle = '#222'; context.fillRect(0, 0, w, h); }
 
-            // 2. Grainy Gradient (Přizpůsobí se výšce)
-            if (grainImg.complete && grainImg.naturalWidth > 0) {
-                drawGrainyGradient(context, w, h);
-            }
-
-            // 3. Logo
-            if (logoImg.complete && logoImg.naturalWidth > 0) {
-                drawLogo(context);
-            }
-
-            // 4. Text
+            if (grainImg.complete && grainImg.naturalWidth > 0) drawGrainyGradient(context, w, h);
+            if (logoImg.complete && logoImg.naturalWidth > 0) drawLogo(context, isStory);
             drawText(context, w, h);
         }
-
-        // --- DRAW HELPERS ---
 
         function drawImageProp(ctx, img, x, y, w, h) {
             let sx, sy, cx, cy;
@@ -205,31 +117,28 @@
             const gCanvas = document.createElement('canvas');
             gCanvas.width = w; gCanvas.height = h;
             const gCtx = gCanvas.getContext('2d');
-            
-            // Gradient je vždy spodních 40% výšky plátna
             const textureHeight = h * 0.40; 
             const yPos = h - textureHeight;
-            
             drawImageProp(gCtx, grainImg, 0, yPos, w, textureHeight);
-            
             gCtx.globalCompositeOperation = 'destination-in';
             const gradient = gCtx.createLinearGradient(0, yPos, 0, h);
             gradient.addColorStop(0, 'rgba(0,0,0,0)');
             gradient.addColorStop(0.3, 'rgba(0,0,0,1)');
             gCtx.fillStyle = gradient; 
             gCtx.fillRect(0, yPos, w, textureHeight);
-            
             ctx.drawImage(gCanvas, 0, 0);
         }
 
-        function drawLogo(ctx) {
+        function drawLogo(ctx, isStory = false) {
             const size = 180; 
-            const padding = 40;
+            const paddingLeft = 40;
+            const paddingTop = isStory ? 220 : 40; // POSUNUTÍ DOLŮ PRO STORY
             ctx.save();
             ctx.beginPath();
-            ctx.arc(padding + size/2, padding + size/2, size/2, 0, Math.PI * 2);
+            ctx.arc(paddingLeft + size/2, paddingTop + size/2, size/2, 0, Math.PI * 2);
             ctx.clip();
-            ctx.drawImage(logoImg, padding, padding, size, size);
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(logoImg, paddingLeft, paddingTop, size, size);
             ctx.restore();
         }
 
@@ -238,11 +147,9 @@
             if (!text) return;
             const fontSize = parseInt(sizeSlider.value);
             const lineHeight = fontSize * 1.2;
-            
             ctx.font = `800 ${fontSize}px 'Inter'`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            
             const paragraphs = text.split('\n');
             let lines = [];
             paragraphs.forEach(p => {
@@ -254,11 +161,7 @@
                 });
                 lines.push(currentLine);
             });
-            
-            // Pozice textu - počítá se procentuálně z výšky plátna (funguje pro Post i Story)
-            const sliderYPercent = posSlider.value / 100;
-            const startY = (h * sliderYPercent) - ((lines.length - 1) * lineHeight / 2);
-            
+            const startY = (h * (posSlider.value / 100)) - ((lines.length - 1) * lineHeight / 2);
             let globalWordCount = 0;
             lines.forEach((line, i) => {
                 let currentX = w / 2 - ctx.measureText(line.join(' ')).width / 2;
@@ -273,9 +176,7 @@
             });
         }
 
-        // --- LISTENERS ---
         window.onload = draw;
-        
         imageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -314,37 +215,28 @@
             highlightedWordsMap = newHighlightedWordsMap;
         }
 
-        // --- STAHOVÁNÍ ---
-
-        // 1. Klasický POST (z hlavního canvasu)
         function downloadImage() {
-            if(!isImageLoaded) { alert("Nahraj fotku!"); return; }
+            if(!isImageLoaded) return;
             const link = document.createElement('a');
             link.download = 'insta-post-4-5.jpg';
             link.href = canvas.toDataURL('image/jpeg', 1.0);
             link.click();
         }
         
-        // 2. STORY (Vytvoří virtuální 9:16 plátno)
         function downloadStoryImage() {
-            if(!isImageLoaded) { alert("Nahraj fotku!"); return; }
-            
+            if(!isImageLoaded) return;
             const storyCanvas = document.createElement('canvas');
             storyCanvas.width = 1080;
-            storyCanvas.height = 1920; // 9:16 poměr
-            
-            // Vykreslíme na toto nové plátno všechno stejně (funkce draw si s tím poradí)
-            draw(storyCanvas, true);
-            
+            storyCanvas.height = 1920;
+            draw(storyCanvas, true); // TRUE signalizuje, že jde o Story
             const link = document.createElement('a');
             link.download = 'insta-story-9-16.jpg';
             link.href = storyCanvas.toDataURL('image/jpeg', 1.0);
             link.click();
         }
 
-        // 3. DARK ONLY (Jen tmavý filtr)
         function downloadDarkGradientImage() {
-            if(!isImageLoaded) { alert("Nahraj fotku!"); return; }
+            if(!isImageLoaded) return;
             const temp = document.createElement('canvas');
             temp.width = canvas.width; temp.height = canvas.height;
             const tCtx = temp.getContext('2d');
