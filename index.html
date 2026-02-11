@@ -3,32 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Insta Post & Story Generator</title>
+    <title>Insta Creator PRO 🚀</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #1a1a1a; color: white; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         h1 { font-size: 1rem; margin-bottom: 10px; text-align: center; color: #888; }
+        
         .main-wrapper { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; }
+        
+        /* Preview Canvas */
         canvas { width: 100%; height: auto; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); border: 1px solid #333; display: block; }
+        
+        /* Ovládací prvky */
         .slider-panel { background: #252525; padding: 15px; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; gap: 15px; }
         .slider-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .slider-row label { min-width: 60px; font-size: 0.8rem; color: #ccc; font-weight: bold; margin: 0; }
         input[type="range"] { flex-grow: 1; accent-color: #00d2ff; height: 6px; background: #444; border-radius: 5px; outline: none; }
+        
         .controls { background: #222; padding: 20px; border-radius: 16px; }
         .input-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #aaa; }
         textarea { width: 100%; background: #333; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; font-family: 'Inter', sans-serif; font-weight: 800; resize: none; box-sizing: border-box; }
+        
         .file-upload { display: block; background: #00d2ff; color: #000; padding: 15px; border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; font-size: 1rem; transition: 0.2s; }
         .file-upload:hover { background: #00b8e6; }
         input[type="file"] { display: none; }
+        
+        /* Tlačítka */
         .download-buttons-group { display: flex; flex-direction: column; gap: 10px; }
-        .download-btn { border: none; color: white; padding: 12px; border-radius: 8px; font-size: 0.9rem; font-weight: 800; cursor: pointer; text-transform: uppercase; }
+        .download-btn { border: none; color: white; padding: 14px; border-radius: 8px; font-size: 0.95rem; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: transform 0.1s; }
+        .download-btn:active { transform: scale(0.98); }
+
         #btnPost { background: linear-gradient(90deg, #ff0055, #ffcc00); }
         #btnStory { background: linear-gradient(90deg, #9d00ff, #00d2ff); }
-        #btnDark { background: #333; border: 1px solid #555; }
+        /* Nové tlačítko pro CTA kartu */
+        #btnCTA { background: linear-gradient(90deg, #11998e, #38ef7d); box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3); } 
+        #btnDark { background: #333; border: 1px solid #555; font-size: 0.8rem; padding: 10px; }
+
         #wordButtonsContainer { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; padding: 10px 0; border-top: 1px solid #333; }
         .word-button { background: #444; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
         .word-button.highlighted { background: #C0C0C0; color: black; font-weight: 800; }
@@ -55,6 +69,8 @@
         <div class="download-buttons-group">
             <button onclick="downloadImage()" id="btnPost" class="download-btn">Stáhnout POST (4:5) 📸</button>
             <button onclick="downloadStoryImage()" id="btnStory" class="download-btn">Stáhnout STORY (9:16) ✨</button>
+            <button onclick="downloadCTACard()" id="btnCTA" class="download-btn">Stáhnout OUTRO KARTU (CTA) 💎</button>
+            
             <button onclick="downloadDarkGradientImage()" id="btnDark" class="download-btn">Jen fotka + 80% Dark 🌑</button>
         </div>
 
@@ -132,7 +148,7 @@
         function drawLogo(ctx, isStory = false) {
             const size = 180; 
             const paddingLeft = 40;
-            const paddingTop = isStory ? 220 : 40; // POSUNUTÍ DOLŮ PRO STORY
+            const paddingTop = isStory ? 220 : 40; 
             ctx.save();
             ctx.beginPath();
             ctx.arc(paddingLeft + size/2, paddingTop + size/2, size/2, 0, Math.PI * 2);
@@ -176,7 +192,148 @@
             });
         }
 
+        // --- POMOCNÁ FUNKCE PRO ZAOBLENÝ OBDÉLNÍK ---
+        function roundRect(ctx, x, y, w, h, radius) {
+            if (w < 2 * radius) radius = w / 2;
+            if (h < 2 * radius) radius = h / 2;
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.arcTo(x + w, y, x + w, y + h, radius);
+            ctx.arcTo(x + w, y + h, x, y + h, radius);
+            ctx.arcTo(x, y + h, x, y, radius);
+            ctx.arcTo(x, y, x + w, y, radius);
+            ctx.closePath();
+            return ctx;
+        }
+
+        // --- DOWNLOAD FUNKCE ---
+
+        function downloadImage() {
+            if(!isImageLoaded) return;
+            const link = document.createElement('a');
+            link.download = 'insta-post-4-5.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 1.0);
+            link.click();
+        }
+        
+        function downloadStoryImage() {
+            if(!isImageLoaded) return;
+            const storyCanvas = document.createElement('canvas');
+            storyCanvas.width = 1080;
+            storyCanvas.height = 1920;
+            draw(storyCanvas, true);
+            const link = document.createElement('a');
+            link.download = 'insta-story-9-16.jpg';
+            link.href = storyCanvas.toDataURL('image/jpeg', 1.0);
+            link.click();
+        }
+
+        function downloadDarkGradientImage() {
+            if(!isImageLoaded) return;
+            const temp = document.createElement('canvas');
+            temp.width = canvas.width; temp.height = canvas.height;
+            const tCtx = temp.getContext('2d');
+            drawImageProp(tCtx, uploadedImage, 0, 0, temp.width, temp.height);
+            tCtx.fillStyle = 'rgba(0, 0, 0, 0.8)'; 
+            tCtx.fillRect(0, 0, temp.width, temp.height);
+            const link = document.createElement('a');
+            link.download = 'dark-overlay.jpg';
+            link.href = temp.toDataURL('image/jpeg', 1.0);
+            link.click();
+        }
+
+        // --- NOVÁ FUNKCE: OUTRO KARTA (CTA) ---
+        function downloadCTACard() {
+            if(!isImageLoaded) { alert("Nahraj fotku!"); return; }
+
+            const w = 1080;
+            const h = 1350; // Použijeme 4:5 poměr, vypadá to na Insta nejlíp
+            const ctaCanvas = document.createElement('canvas');
+            ctaCanvas.width = w;
+            ctaCanvas.height = h;
+            const ctx = ctaCanvas.getContext('2d');
+
+            // 1. POZADÍ - Rozmazaná fotka
+            ctx.save();
+            ctx.filter = 'blur(20px)'; // Gaussian Blur
+            // Finta: nakreslíme fotku trochu větší, abychom neměli bílé okraje z bluru
+            drawImageProp(ctx, uploadedImage, -50, -50, w + 100, h + 100);
+            ctx.restore();
+
+            // 2. ZTMAVENÍ POZADÍ (50%)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(0, 0, w, h);
+
+            // 3. KARTA (Popředí)
+            const cardW = 800;
+            const cardH = 900;
+            const cardX = (w - cardW) / 2;
+            const cardY = (h - cardH) / 2;
+
+            ctx.save();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'; // Černá 80% opacity
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 30;
+            roundRect(ctx, cardX, cardY, cardW, cardH, 40); // 40px radius rohů
+            ctx.fill();
+            ctx.restore();
+
+            // 4. LOGO (Uprostřed nahoře v kartě)
+            if (logoImg.complete) {
+                const lSize = 150;
+                const lX = (w - lSize) / 2;
+                const lY = cardY + 60;
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(lX + lSize/2, lY + lSize/2, lSize/2, 0, Math.PI*2);
+                ctx.clip();
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(logoImg, lX, lY, lSize, lSize);
+                ctx.restore();
+            }
+
+            // 5. TEXT: "LÍBIL SE TI POST?"
+            ctx.fillStyle = 'white';
+            ctx.font = '800 50px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText("LÍBIL SE TI POST?", w/2, cardY + 300);
+
+            // 6. IKONKY (Emoji)
+            ctx.font = '60px Inter'; // Větší font pro emoji
+            ctx.fillText("❤️   💬   ✈️", w/2, cardY + 420);
+
+            // 7. TLAČÍTKO "Sledovat @ifotbalove"
+            const btnW = 500;
+            const btnH = 100;
+            const btnX = (w - btnW) / 2;
+            const btnY = cardY + cardH - 180; // Dole v kartě
+
+            // Tvar tlačítka (Modrá Insta barva nebo gradient)
+            ctx.save();
+            // Gradient tlačítka
+            const btnGrad = ctx.createLinearGradient(btnX, btnY, btnX + btnW, btnY);
+            btnGrad.addColorStop(0, '#0095f6'); // Insta modrá start
+            btnGrad.addColorStop(1, '#006ace'); // Insta modrá konec
+            ctx.fillStyle = btnGrad;
+            
+            roundRect(ctx, btnX, btnY, btnW, btnH, 50); // Plně kulaté rohy
+            ctx.fill();
+            ctx.restore();
+
+            // Text v tlačítku
+            ctx.fillStyle = 'white';
+            ctx.font = '600 35px Inter';
+            ctx.fillText("Sledovat @ifotbalove", w/2, btnY + 62);
+
+            // STÁHNOUT
+            const link = document.createElement('a');
+            link.download = 'insta-outro-card.jpg';
+            link.href = ctaCanvas.toDataURL('image/jpeg', 1.0);
+            link.click();
+        }
+
         window.onload = draw;
+        
         imageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -213,40 +370,6 @@
                 wordButtonsContainer.appendChild(button);
             });
             highlightedWordsMap = newHighlightedWordsMap;
-        }
-
-        function downloadImage() {
-            if(!isImageLoaded) return;
-            const link = document.createElement('a');
-            link.download = 'insta-post-4-5.jpg';
-            link.href = canvas.toDataURL('image/jpeg', 1.0);
-            link.click();
-        }
-        
-        function downloadStoryImage() {
-            if(!isImageLoaded) return;
-            const storyCanvas = document.createElement('canvas');
-            storyCanvas.width = 1080;
-            storyCanvas.height = 1920;
-            draw(storyCanvas, true); // TRUE signalizuje, že jde o Story
-            const link = document.createElement('a');
-            link.download = 'insta-story-9-16.jpg';
-            link.href = storyCanvas.toDataURL('image/jpeg', 1.0);
-            link.click();
-        }
-
-        function downloadDarkGradientImage() {
-            if(!isImageLoaded) return;
-            const temp = document.createElement('canvas');
-            temp.width = canvas.width; temp.height = canvas.height;
-            const tCtx = temp.getContext('2d');
-            drawImageProp(tCtx, uploadedImage, 0, 0, temp.width, temp.height);
-            tCtx.fillStyle = 'rgba(0, 0, 0, 0.8)'; 
-            tCtx.fillRect(0, 0, temp.width, temp.height);
-            const link = document.createElement('a');
-            link.download = 'dark-overlay.jpg';
-            link.href = temp.toDataURL('image/jpeg', 1.0);
-            link.click();
         }
     </script>
 </body>
